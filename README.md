@@ -1,3 +1,3 @@
-# Neuroparty processing
+# Neuroparty
 
-A processing microservice for a Neuroparty application
+The **Neuroparty** is a microservice application for creating cool-looking photos using the power of Artificial Intelligence!
