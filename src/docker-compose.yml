@@ -1,0 +1,17 @@
+version: "3"
+services:
+    nginx-proxy:
+      build: ./proxy
+      links:
+        - sync-server:sync-server
+      ports:
+        - "80:80"
+
+    sync-server:
+      build: ./sync_server
+
+    # service-bus:
+    #   image: rabbitmq
+
+    # worker:
+    #   build: ./worker
