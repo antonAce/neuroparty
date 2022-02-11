@@ -5,9 +5,9 @@ from fastapi.staticfiles import StaticFiles
 from validators import get_qr_token_header
 
 
-router = APIRouter(
-    prefix="/items",
-    tags=["items"],
+api_router = APIRouter(
+    prefix="/api",
+    tags=["api"],
     dependencies=[Depends(get_qr_token_header)],
     responses={404: {"description": "Not found"}},
 )
