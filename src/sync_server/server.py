@@ -1,8 +1,12 @@
 import uuid
+import asyncio
 
-from fastapi import FastAPI, Form, File, Header, UploadFile, HTTPException, status
+from websockets.exceptions import ConnectionClosedError
+from fastapi import FastAPI, Form, File, Header, UploadFile, \
+                HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+
 from bson.binary import Binary
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import ASCENDING
@@ -11,6 +15,7 @@ from datetime import datetime
 from settings import MAX_FILE_SIZE, MONGO_CLIENT_URL
 
 
+messaging_status_delay = 0.5
 accepted_content_types = ["image/jpeg", "image/png"]
 app = FastAPI(docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -75,6 +80,27 @@ async def request(content_length: int = Header(None),
     return {
         "post_id": str(db_result.inserted_id)
     }
+
+
+@app.websocket("/status/{token}")
+async def check_processing_status(websocket: WebSocket, token: str):
+    await websocket.accept()
+
+    existing_request_entity = await requests_collection.find_one({"token": token})
+
+    if existing_request_entity is None:
+        await websocket.send_json({"detail": f"Request with token '{token}' is not recorded."})
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+    else:
+        try:
+            while True:
+                existing_request_entity = await requests_collection.find_one({"token": token})
+                await websocket.send_json({"status": existing_request_entity["image_processing_status"]})
+                await asyncio.sleep(messaging_status_delay)
+        except ConnectionClosedError:
+            pass
+        finally:
+            await websocket.close()
 
 
 @app.get("/")
