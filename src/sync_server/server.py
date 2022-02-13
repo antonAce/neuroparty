@@ -42,12 +42,20 @@ async def request(content_length: int = Header(None),
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
     if file.content_type not in accepted_content_types:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid content type. Acceptable types are: {', '.join(accepted_content_types)}.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Invalid content type. Acceptable types are: {', '.join(accepted_content_types)}.")
 
     try:
         request_token = uuid.UUID(token)
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Token '{token}' format is invalid. Expected to be UUID4.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Token '{token}' format is invalid. Expected to be UUID4.")
+
+    existing_request_entity = await requests_collection.find_one({"token": token})
+
+    if existing_request_entity is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Request with token '{token}' is already recorded.")
 
     encoded_file = Binary(await file.read())
 
@@ -59,7 +67,8 @@ async def request(content_length: int = Header(None),
         "utc_request": datetime.utcnow(),
         "image_name": file.filename,
         "image_filetype": file.content_type,
-        "image_binary": encoded_file
+        "image_binary": encoded_file,
+        "image_processing_status": 0
     }
 
     db_result = await requests_collection.insert_one(request_entity)
