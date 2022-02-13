@@ -3,7 +3,7 @@ import asyncio
 
 from websockets.exceptions import ConnectionClosedError
 from fastapi import FastAPI, Form, File, Header, UploadFile, \
-                HTTPException, status, WebSocket, WebSocketDisconnect
+                HTTPException, status, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 

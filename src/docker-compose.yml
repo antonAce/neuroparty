@@ -2,6 +2,7 @@ version: "3"
 services:
     nginx-proxy:
       build: ./proxy
+      restart: always
       links:
         - sync-server:sync-server
       ports:
@@ -9,6 +10,19 @@ services:
 
     sync-server:
       build: ./sync_server
+      restart: always
+      links:
+        - mongo-storage:mongo-storage
+      environment:
+        ENV_MAX_FILE_SIZE: ${ENV_MAX_FILE_SIZE}
+        ENV_MONGO_CLIENT_URL: ${ENV_MONGO_CLIENT_URL}
+
+    mongo-storage:
+      image: mongo
+      restart: always
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: ${ENV_MONGO_USERNAME}
+        MONGO_INITDB_ROOT_PASSWORD: ${ENV_MONGO_PASSWORD}
 
     # service-bus:
     #   image: rabbitmq
