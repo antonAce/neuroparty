@@ -13,9 +13,11 @@ services:
       restart: always
       links:
         - mongo-storage:mongo-storage
+        - service-bus:service-bus
       environment:
         ENV_MAX_FILE_SIZE: ${ENV_MAX_FILE_SIZE}
         ENV_MONGO_CLIENT_URL: ${ENV_MONGO_CLIENT_URL}
+        ENV_SERVICE_BUS_URL: ${ENV_SERVICE_BUS_URL}
 
     mongo-storage:
       image: mongo
@@ -24,8 +26,12 @@ services:
         MONGO_INITDB_ROOT_USERNAME: ${ENV_MONGO_USERNAME}
         MONGO_INITDB_ROOT_PASSWORD: ${ENV_MONGO_PASSWORD}
 
-    # service-bus:
-    #   image: rabbitmq
+    service-bus:
+       image: rabbitmq
+       restart: always
+       environment:
+         RABBITMQ_DEFAULT_USER: ${ENV_RABBITMQ_USERNAME}
+         RABBITMQ_DEFAULT_PASS: ${ENV_RABBITMQ_PASSWORD}
 
     # worker:
     #   build: ./worker
